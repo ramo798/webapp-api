@@ -2,18 +2,23 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"github.com/lib/pq"
 )
 
-// WriteContents is 書き込み用の構造体
-type WriteContents struct {
-	ID       int    `json:id sql:AUTO_INCREMENT`
+// Zigokucontents is 書き込み用の構造体
+type Zigokucontents struct {
+	ID       int    `json:id gorm:"AUTO_INCREMENT"`
 	UserID   string `json:userid`
 	UserName string `json:username`
-	Date     string `json:date`
+	Text     string `json:text`
+	Year     int    `json:year`
+	Month    int    `json:year`
+	Day      int    `json:year`
 }
 
 func gormConnect() *gorm.DB {
@@ -33,9 +38,40 @@ func gormConnect() *gorm.DB {
 	return db
 }
 
+func setRouter(db *gorm.DB) *gin.Engine {
+	r := gin.Default()
+
+	r.GET("/testread", func(c *gin.Context) {
+		users := []Zigokucontents{}
+		db.Find(&users)
+		c.JSON(http.StatusOK, users)
+	})
+
+	r.GET("/testwrite", func(c *gin.Context) {
+
+	})
+
+	return r
+}
+
 func main() {
 	db := gormConnect()
+
 	defer db.Close()
+	// db.CreateTable(&Zigokucontents{})
+
+	// con := Zigokucontents{}
+	// con.UserName = "ramo3"
+	// con.UserID = "sasa"
+	// con.Day = 13
+	// con.Year = 123
+	// con.Day = 13
+	// db.Create(&con)
+
+	port := os.Args[1]
+	r := setRouter(db)
+	r.Run(":" + port)
+
 	// i := Impl{}
 	// i.InitDB()
 

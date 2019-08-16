@@ -41,14 +41,18 @@ func gormConnect() *gorm.DB {
 func setRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 
-	r.GET("/testread", func(c *gin.Context) {
-		users := []Zigokucontents{}
-		db.Find(&users)
-		c.JSON(http.StatusOK, users)
+	// 全部読み込む
+	r.GET("/readcontents", func(c *gin.Context) {
+		contents := []Zigokucontents{}
+		db.Find(&contents)
+		c.JSON(http.StatusOK, contents)
 	})
-
-	r.GET("/testwrite", func(c *gin.Context) {
-
+	//　個数制限で降順に読み込み
+	r.GET("/readcontents/:num", func(c *gin.Context) {
+		num := c.Param("num")
+		contents := []Zigokucontents{}
+		db.Limit(num).Order("ID desc").Find(&contents)
+		c.JSON(http.StatusOK, contents)
 	})
 
 	return r

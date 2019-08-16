@@ -1,16 +1,22 @@
 package main
 
 import (
-	"net/http"
+	"fmt"
 	"os"
 
-	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"github.com/lib/pq"
 )
 
-func main() {
+// WriteContents is 書き込み用の構造体
+type WriteContents struct {
+	ID       int    `json:id sql:AUTO_INCREMENT`
+	UserID   string `json:userid`
+	UserName string `json:username`
+	Date     string `json:date`
+}
 
+func gormConnect() *gorm.DB {
 	url := os.Getenv("DATABASE_URL")
 
 	connection, err := pq.ParseURL(url)
@@ -18,68 +24,36 @@ func main() {
 		panic(err.Error())
 	}
 	connection += " sslmode=require"
-	db, err := gorm.Open("postgres", connection)
-	defer db.Close()
 
-	port := os.Args[1]
-	r := gin.Default()
-	r.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "Hello World")
-	})
-	r.Run(":" + port)
+	db, err := gorm.Open("postgres", connection)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Println("db connected: ", &db)
+	return db
 }
 
-// package main
+func main() {
+	db := gormConnect()
+	defer db.Close()
+	// i := Impl{}
+	// i.InitDB()
 
-// import (
-// 	"log"
-// 	"net/http"
-// 	"time"
+	// マイグレーション
+	// db.CreateTable(&WriteContents{})
 
-// 	"github.com/ant0ine/go-json-rest/rest"
-// 	_ "github.com/go-sql-driver/mysql" // エイリアスでprefixを省略できる
-// 	"github.com/jinzhu/gorm"
-// )
+	// insert test
+	// cont := WriteContents{}
+	// cont.Date = "20190816"
+	// cont.UserID = "asasa"
+	// cont.UserName = "name"
+	// db.Create(&cont)
 
-// type Country struct {
-// 	Id        int64     `json:"id"`
-// 	Name      string    `sql:"size:1024" json:"name"`
-// 	CreatedAt time.Time `json:"createdAt"`
-// }
+	// port := os.Args[1]
+	// r := gin.Default()
+	// r.GET("/", func(c *gin.Context) {
+	// 	c.String(http.StatusOK, "Hello World")
+	// })
 
-// type Impl struct {
-// 	DB *gorm.DB
-// }
-
-// func (i *Impl) InitDB() {
-// 	var err error
-// 	// MySQLとの接続。ユーザ名：gorm パスワード：password DB名：country
-// 	i.DB, err = gorm.Open("mysql", "gorm:password@/country?charset=utf8&parseTime=True&loc=Local")
-// 	if err != nil {
-// 		log.Fatalf("Got error when connect database, the error is '%v'", err)
-// 	}
-// 	i.DB.LogMode(true)
-// }
-
-// // DBマイグレーション
-// func (i *Impl) InitSchema() {
-// 	i.DB.AutoMigrate(&Country{})
-// }
-
-// func main() {
-
-// 	i := Impl{}
-// 	i.InitDB()
-// 	i.InitSchema()
-
-// 	api := rest.NewApi()
-// 	api.Use(rest.DefaultDevStack...)
-// 	router, err := rest.MakeRouter()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	log.Printf("server started.")
-// 	api.SetApp(router)
-// 	log.Fatal(http.ListenAndServe(":8080", api.MakeHandler()))
-// }
+	// r.Run(":" + port)
+}

@@ -56,40 +56,13 @@ func setRouter(db *gorm.DB) *gin.Engine {
 
 func main() {
 	db := gormConnect()
-
 	defer db.Close()
-	// db.CreateTable(&Zigokucontents{})
 
-	// con := Zigokucontents{}
-	// con.UserName = "ramo3"
-	// con.UserID = "sasa"
-	// con.Day = 13
-	// con.Year = 123
-	// con.Day = 13
-	// db.Create(&con)
+	// 初回マイグレーションで使った
+	// db.CreateTable(&Zigokucontents{})
 
 	port := os.Args[1]
 	r := setRouter(db)
 	r.Run(":" + port)
 
-	// i := Impl{}
-	// i.InitDB()
-
-	// マイグレーション
-	// db.CreateTable(&WriteContents{})
-
-	// insert test
-	// cont := WriteContents{}
-	// cont.Date = "20190816"
-	// cont.UserID = "asasa"
-	// cont.UserName = "name"
-	// db.Create(&cont)
-
-	// port := os.Args[1]
-	// r := gin.Default()
-	// r.GET("/", func(c *gin.Context) {
-	// 	c.String(http.StatusOK, "Hello World")
-	// })
-
-	// r.Run(":" + port)
 }

@@ -5,9 +5,22 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
+	"github.com/lib/pq"
 )
 
 func main() {
+
+	url := os.Getenv("DATABASE_URL")
+
+	connection, err := pq.ParseURL(url)
+	if err != nil {
+		panic(err.Error())
+	}
+	connection += " sslmode=require"
+	db, err := gorm.Open("postgres", connection)
+	defer db.Close()
+
 	port := os.Args[1]
 	r := gin.Default()
 	r.GET("/", func(c *gin.Context) {

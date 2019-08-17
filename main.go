@@ -51,8 +51,22 @@ func setRouter(db *gorm.DB) *gin.Engine {
 	r.GET("/readcontents/:num", func(c *gin.Context) {
 		num := c.Param("num")
 		contents := []Zigokucontents{}
-		db.Limit(num).Order("ID desc").Find(&contents)
+		db.Order("ID desc").Limit(num).Find(&contents)
 		c.JSON(http.StatusOK, contents)
+	})
+
+	// postエンドポイント
+	r.POST("/writecontents", func(c *gin.Context) {
+		data := Zigokucontents{}
+
+		if err := c.BindJSON(&data); err != nil {
+			c.String(http.StatusBadRequest, "Request is failed: "+err.Error())
+		}
+		db.NewRecord(data)
+		db.Create(&data)
+		if db.NewRecord(data) == false {
+			c.JSON(http.StatusOK, data)
+		}
 	})
 
 	return r

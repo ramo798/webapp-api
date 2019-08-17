@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ChimeraCoder/anaconda"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"github.com/lib/pq"
@@ -56,31 +57,73 @@ func setRouter(db *gorm.DB) *gin.Engine {
 	})
 
 	// postエンドポイント
-	r.POST("/writecontents", func(c *gin.Context) {
-		data := Zigokucontents{}
+	// r.POST("/writecontents", func(c *gin.Context) {
+	// 	data := Zigokucontents{}
 
-		if err := c.BindJSON(&data); err != nil {
-			c.String(http.StatusBadRequest, "Request is failed: "+err.Error())
-		}
-		db.NewRecord(data)
-		db.Create(&data)
-		if db.NewRecord(data) == false {
-			c.JSON(http.StatusOK, data)
-		}
-	})
+	// 	if err := c.BindJSON(&data); err != nil {
+	// 		c.String(http.StatusBadRequest, "Request is failed: "+err.Error())
+	// 	}
+	// 	db.NewRecord(data)
+	// 	db.Create(&data)
+	// 	if db.NewRecord(data) == false {
+	// 		c.JSON(http.StatusOK, data)
+	// 	}
+	// })
+
+	// r.POST("/twitterurl", func(c *gin.Context) {
+	// 	url := c.PostForm("url")
+
+	// })
 
 	return r
 }
 
+// func gettwitter(id string) {
+// 	anaconda.SetConsumerKey(os.Getenv("TWITTERCONSUMER_KEY"))
+// 	anaconda.SetConsumerSecret(os.Getenv("TWITTERCONSUMER_SECRET"))
+// 	api := anaconda.NewTwitterApi(os.Getenv("TWITTERACCESS_TOKEN"), os.Getenv("TWITTERACCESS_TOKEN_SECRET"))
+
+// 	tweet, err := api.GetTweet(1158752495960653824, nil)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// }
+
 func main() {
-	db := gormConnect()
-	defer db.Close()
+	// db := gormConnect()
+	// defer db.Close()
 
 	// 初回マイグレーションで使った
 	// db.CreateTable(&Zigokucontents{})
 
-	port := os.Args[1]
-	r := setRouter(db)
-	r.Run(":" + port)
+	// port := os.Args[1]
+	// r := setRouter(db)
+	// r.Run(":" + port)
+
+	anaconda.SetConsumerKey(os.Getenv("TWITTERCONSUMER_KEY"))
+	anaconda.SetConsumerSecret(os.Getenv("TWITTERCONSUMER_SECRET"))
+	api := anaconda.NewTwitterApi(os.Getenv("TWITTERACCESS_TOKEN"), os.Getenv("TWITTERACCESS_TOKEN_SECRET"))
+
+	// tweet, err := api.GetTweet(1162722887679090688, nil)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(tweet)
+	// fmt.Println(reflect.TypeOf(tweet))
+	// fmt.Println(strings.Index(tweet, "false"))
+
+	// var tweetid int64 = 1162726857231544320
+	// tweet, err := api.GetTweet(tweetid, nil)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// fmt.Println(tweet.Text)
+
+	searchResult, _ := api.GetSearch("golang", nil)
+	for _, tweet := range searchResult.Statuses {
+		fmt.Print(tweet.Text)
+	}
 
 }

@@ -121,9 +121,4 @@ func main() {
 
 	// fmt.Println(tweet.Text)
 
-	searchResult, _ := api.GetSearch("golang", nil)
-	for _, tweet := range searchResult.Statuses {
-		fmt.Print(tweet.Text)
-	}
-
 }

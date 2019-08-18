@@ -20,7 +20,7 @@ type Kodoku struct {
 	UserID   string    `json:userid`
 	UserName string    `json:username`
 	Text     string    `json:text`
-	time     time.Time `json:birthday`
+	time     time.Time `json:time`
 	Tweetid  int64     `json:tweetid`
 }
 
@@ -30,8 +30,13 @@ type Enmatyou struct {
 	Blockwrited bool  `json:blockwrited`
 }
 
-type Search_response struct {
+type Tweetresult struct {
 	Text string `json:text`
+	User struct {
+		Name        string `json:name`
+		Screen_name string `json:screen_name`
+	}
+	// created_at time.Time `json:time`
 }
 
 func gormConnect() *gorm.DB {
@@ -147,11 +152,11 @@ func gettweet() {
 		panic(err.Error())
 	}
 
-	var result Search_response
+	var result Tweetresult
 	json.Unmarshal(b, &result)
 	response.Body.Close()
 
-	fmt.Println(result.Text)
+	fmt.Println(result)
 
 	// fmt.Println(string(b))
 	// fmt.Println(response.Body)

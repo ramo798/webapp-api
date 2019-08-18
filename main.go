@@ -36,7 +36,7 @@ type Tweetresult struct {
 		Name        string `json:name`
 		Screen_name string `json:screen_name`
 	}
-	// created_at time.Time `json:time`
+	Created_at string `json:time`
 }
 
 func gormConnect() *gorm.DB {

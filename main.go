@@ -1,11 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/dghubble/oauth1"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"github.com/lib/pq"
@@ -25,6 +28,10 @@ type Enmatyou struct {
 	ID          int   `json:id gorm:"AUTO_INCREMENT"`
 	Tweetid     int64 `json:tweetid`
 	Blockwrited bool  `json:blockwrited`
+}
+
+type Search_response struct {
+	Text string `json:text`
 }
 
 func gormConnect() *gorm.DB {
@@ -118,16 +125,56 @@ func setRouter(db *gorm.DB) *gin.Engine {
 	return r
 }
 
+func gettweet() {
+	config := oauth1.NewConfig(os.Getenv("TWITTERCONSUMER_KEY"), os.Getenv("TWITTERCONSUMER_SECRET"))
+	token := oauth1.NewToken(os.Getenv("TWITTERACCESS_TOKEN"), os.Getenv("TWITTERACCESS_TOKEN_SECRET"))
+	httpClient := config.Client(oauth1.NoContext, token)
+
+	// fmt.Println(os.Getenv("TWITTERCONSUMER_KEY"))
+
+	request, err := http.NewRequest("GET", "https://api.twitter.com/1.1/statuses/show.json?id=1163100797984366592", nil)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	response, err := httpClient.Do(request)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	b, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var result Search_response
+	json.Unmarshal(b, &result)
+	response.Body.Close()
+
+	fmt.Println(result.Text)
+
+	// fmt.Println(string(b))
+	// fmt.Println(response.Body)
+	// fmt.Println(reflect.TypeOf(response.Body))
+
+	// fmt.Println(b[2])
+
+	// fmt.Println(reflect.TypeOf(b))
+
+}
+
 func main() {
-	db := gormConnect()
-	defer db.Close()
+	// db := gormConnect()
+	// defer db.Close()
 
-	// 初回マイグレーションで使った
-	db.CreateTable(&Kodoku{})
-	db.CreateTable(&Enmatyou{})
+	// // 初回マイグレーションで使った
+	// db.CreateTable(&Kodoku{})
+	// db.CreateTable(&Enmatyou{})
 
-	port := os.Args[1]
-	r := setRouter(db)
-	r.Run(":" + port)
+	// port := os.Args[1]
+	// r := setRouter(db)
+	// r.Run(":" + port)
+
+	gettweet()
 
 }

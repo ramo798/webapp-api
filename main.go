@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/dghubble/oauth1"
@@ -131,14 +130,14 @@ func setRouter(db *gorm.DB) *gin.Engine {
 	return r
 }
 
-func gettweet(id int64) Tweetresult {
+func gettweet(id string) Tweetresult {
 	config := oauth1.NewConfig(os.Getenv("TWITTERCONSUMER_KEY"), os.Getenv("TWITTERCONSUMER_SECRET"))
 	token := oauth1.NewToken(os.Getenv("TWITTERACCESS_TOKEN"), os.Getenv("TWITTERACCESS_TOKEN_SECRET"))
 	httpClient := config.Client(oauth1.NoContext, token)
 
 	// fmt.Println(os.Getenv("TWITTERCONSUMER_KEY"))
 
-	request, err := http.NewRequest("GET", "https://api.twitter.com/1.1/statuses/show.json?id="+strconv.FormatInt(id, 10), nil)
+	request, err := http.NewRequest("GET", "https://api.twitter.com/1.1/statuses/show.json?id="+id, nil)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -176,6 +175,6 @@ func main() {
 	// r := setRouter(db)
 	// r.Run(":" + port)
 
-	fmt.Println(gettweet(1163100797984366592))
+	fmt.Println(gettweet("1163100797984366592"))
 
 }

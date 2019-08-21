@@ -9,6 +9,7 @@ COPY . .
 RUN go get github.com/gin-gonic/gin
 RUN go get github.com/jinzhu/gorm
 RUN go get github.com/lib/pq
+RUN go get github.com/dghubble/oauth1
 
 RUN go build main.go
 

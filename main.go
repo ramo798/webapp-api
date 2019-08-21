@@ -39,7 +39,7 @@ type Tweetresult struct {
 	Created_at string `json:time`
 }
 type Twitteridpost struct {
-	tweetid string `json:twitterid`
+	Tweetid string `json:tweetid`
 }
 
 func gormConnect() *gorm.DB {
@@ -131,19 +131,37 @@ func setRouter(db *gorm.DB) *gin.Engine {
 	})
 
 	// twitterid渡すところ
-	r.POST("/twitterid/post", func(c *gin.Context) {
-		data := Twitteridpost{}
+	r.GET("/twitterid/:num", func(c *gin.Context) {
+		// data := Twitteridpost{}
 
-		if err := c.BindJSON(&data); err != nil {
-			c.String(http.StatusBadRequest, "Request is failed: "+err.Error())
-		}
-
-		result := gettweet(data.tweetid)
-
-		c.JSON(http.StatusOK, result)
-		// if gettweet(data.tweetid) == false {
-		// 	c.JSON(http.StatusOK, result)
+		// if err := c.BindJSON(&data); err != nil {
+		// 	c.String(http.StatusBadRequest, "Request is failed: "+err.Error())
 		// }
+
+		num := c.Param("num")
+
+		fmt.Println("-----------------")
+		// fmt.Println(num)
+		// fmt.Println(data.Tweetid)
+		// fmt.Println(reflect.TypeOf(data.Tweetid))
+		result := gettweet(num)
+		// time.Sleep(2 * time.Second)
+		// fmt.Println(result)
+		fmt.Println("-----------------")
+
+		jsonreturn := Tweetresult{}
+		jsonreturn.Text = result.Text
+		jsonreturn.User.Name = result.User.Name
+		jsonreturn.User.Screen_name = result.User.Screen_name
+		jsonreturn.Created_at = result.Created_at
+
+		// jsonreturn := Tweetresult{}
+		// jsonreturn.Text = "俺はジャイアン"
+		// jsonreturn.User.Name = "ガキ大将"
+		// jsonreturn.User.Screen_name = "sa"
+		// jsonreturn.Created_at = "昨日"
+		c.JSON(http.StatusOK, jsonreturn)
+
 	})
 
 	return r
@@ -153,8 +171,6 @@ func gettweet(id string) Tweetresult {
 	config := oauth1.NewConfig(os.Getenv("TWITTERCONSUMER_KEY"), os.Getenv("TWITTERCONSUMER_SECRET"))
 	token := oauth1.NewToken(os.Getenv("TWITTERACCESS_TOKEN"), os.Getenv("TWITTERACCESS_TOKEN_SECRET"))
 	httpClient := config.Client(oauth1.NoContext, token)
-
-	// fmt.Println(os.Getenv("TWITTERCONSUMER_KEY"))
 
 	request, err := http.NewRequest("GET", "https://api.twitter.com/1.1/statuses/show.json?id="+id, nil)
 	if err != nil {
@@ -169,6 +185,7 @@ func gettweet(id string) Tweetresult {
 	b, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		panic(err.Error())
+
 	}
 
 	var result Tweetresult
@@ -177,23 +194,25 @@ func gettweet(id string) Tweetresult {
 
 	// fmt.Println(result)
 	// fmt.Println(reflect.TypeOf(result))
-
 	return result
 
 }
 
 func main() {
-	// db := gormConnect()
-	// defer db.Close()
 
-	// // 初回マイグレーションで使った
-	// db.CreateTable(&Kodoku{})
-	// db.CreateTable(&Enmatyou{})
+	// test := gettweet("1162705418025521152")
+	// // fmt.Println(test.Text)
+	// fmt.Println(test.User.Name)
 
-	// port := os.Args[1]
-	// r := setRouter(db)
-	// r.Run(":" + port)
+	db := gormConnect()
+	defer db.Close()
 
-	fmt.Println(gettweet("1163100797984366592"))
+	// 初回マイグレーションで使った
+	db.CreateTable(&Kodoku{})
+	db.CreateTable(&Enmatyou{})
+
+	port := os.Args[1]
+	r := setRouter(db)
+	r.Run(":" + port)
 
 }

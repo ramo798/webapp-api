@@ -38,6 +38,9 @@ type Tweetresult struct {
 	}
 	Created_at string `json:time`
 }
+type Twitteridpost struct {
+	tweetid string `json:twitterid`
+}
 
 func gormConnect() *gorm.DB {
 	url := os.Getenv("DATABASE_URL")
@@ -125,6 +128,22 @@ func setRouter(db *gorm.DB) *gin.Engine {
 		contents := []Kodoku{}
 		db.Order("ID desc").Limit(num).Find(&contents)
 		c.JSON(http.StatusOK, contents)
+	})
+
+	// twitterid渡すところ
+	r.POST("/twitterid/post", func(c *gin.Context) {
+		data := Twitteridpost{}
+
+		if err := c.BindJSON(&data); err != nil {
+			c.String(http.StatusBadRequest, "Request is failed: "+err.Error())
+		}
+
+		result := gettweet(data.tweetid)
+
+		c.JSON(http.StatusOK, result)
+		// if gettweet(data.tweetid) == false {
+		// 	c.JSON(http.StatusOK, result)
+		// }
 	})
 
 	return r

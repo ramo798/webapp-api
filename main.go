@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/dghubble/oauth1"
 	"github.com/gin-gonic/gin"
@@ -16,19 +15,20 @@ import (
 
 // Kodoku is 書き込み用の構造体
 type Kodoku struct {
-	ID       int       `json:id`
-	UserID   string    `json:userid`
-	UserName string    `json:username`
-	Text     string    `json:text`
-	time     time.Time `json:time`
-	Tweetid  int64     `json:tweetid`
+	ID          int    `json:id gorm:"AUTO_INCREMENT"`
+	UserID      string `json:userid`
+	UserName    string `json:username`
+	Text        string `json:text`
+	Created_at  string `json:time`
+	Tweetid     string `json:tweetid`
+	Blockwrited bool   `json:blockwrited`
 }
 
-type Enmatyou struct {
-	ID          int   `json:id gorm:"AUTO_INCREMENT"`
-	Tweetid     int64 `json:tweetid`
-	Blockwrited bool  `json:blockwrited`
-}
+// type Enmatyou struct {
+// 	ID          int   `json:id gorm:"AUTO_INCREMENT"`
+// 	Tweetid     int64 `json:tweetid`
+// 	Blockwrited bool  `json:blockwrited`
+// }
 
 type Tweetresult struct {
 	Text string `json:text`
@@ -62,46 +62,46 @@ func gormConnect() *gorm.DB {
 func setRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 
-	// 閻魔帳への書き込み
-	// curl -X POST -H "Content-Type: application/json" -d '{"Tweetid":123456789,"Blockwrited":false}' localhost:3000/enmatyou/write
-	r.POST("/enmatyou/write", func(c *gin.Context) {
-		data := Enmatyou{}
+	// // 閻魔帳への書き込み
+	// // curl -X POST -H "Content-Type: application/json" -d '{"Tweetid":123456789,"Blockwrited":false}' localhost:3000/enmatyou/write
+	// r.POST("/enmatyou/write", func(c *gin.Context) {
+	// 	data := Enmatyou{}
 
-		if err := c.BindJSON(&data); err != nil {
-			c.String(http.StatusBadRequest, "Request is failed: "+err.Error())
-		}
-		db.NewRecord(data)
-		db.Create(&data)
-		if db.NewRecord(data) == false {
-			c.JSON(http.StatusOK, data)
-		}
-	})
-	// 閻魔帳を全部読む
-	r.GET("/enmatyou/read", func(c *gin.Context) {
-		contents := []Enmatyou{}
-		db.Find(&contents)
-		c.JSON(http.StatusOK, contents)
-	})
-	// 閻魔帳を個数制限降順で読む
-	r.GET("/enmatyou/read/:num", func(c *gin.Context) {
-		num := c.Param("num")
-		contents := []Enmatyou{}
-		db.Order("ID desc").Limit(num).Find(&contents)
-		c.JSON(http.StatusOK, contents)
-	})
-	// 閻魔帳のBlockwritedをtrueにする
-	// curl -X PUT -H "Content-Type: application/json" -d '{"Blockwrited":true}' localhost:3000/enmatyou/update/1
-	r.PUT("/enmatyou/update/:id", func(c *gin.Context) {
-		user := Enmatyou{}
-		id := c.Param("id")
+	// 	if err := c.BindJSON(&data); err != nil {
+	// 		c.String(http.StatusBadRequest, "Request is failed: "+err.Error())
+	// 	}
+	// 	db.NewRecord(data)
+	// 	db.Create(&data)
+	// 	if db.NewRecord(data) == false {
+	// 		c.JSON(http.StatusOK, data)
+	// 	}
+	// })
+	// // 閻魔帳を全部読む
+	// r.GET("/enmatyou/read", func(c *gin.Context) {
+	// 	contents := []Enmatyou{}
+	// 	db.Find(&contents)
+	// 	c.JSON(http.StatusOK, contents)
+	// })
+	// // 閻魔帳を個数制限降順で読む
+	// r.GET("/enmatyou/read/:num", func(c *gin.Context) {
+	// 	num := c.Param("num")
+	// 	contents := []Enmatyou{}
+	// 	db.Order("ID desc").Limit(num).Find(&contents)
+	// 	c.JSON(http.StatusOK, contents)
+	// })
+	// // 閻魔帳のBlockwritedをtrueにする
+	// // curl -X PUT -H "Content-Type: application/json" -d '{"Blockwrited":true}' localhost:3000/enmatyou/update/1
+	// r.PUT("/enmatyou/update/:id", func(c *gin.Context) {
+	// 	user := Enmatyou{}
+	// 	id := c.Param("id")
 
-		data := Enmatyou{}
-		if err := c.BindJSON(&data); err != nil {
-			c.String(http.StatusBadRequest, "Request is failed: "+err.Error())
-		}
+	// 	data := Enmatyou{}
+	// 	if err := c.BindJSON(&data); err != nil {
+	// 		c.String(http.StatusBadRequest, "Request is failed: "+err.Error())
+	// 	}
 
-		db.Where("ID = ?", id).First(&user).Updates(&data)
-	})
+	// 	db.Where("ID = ?", id).First(&user).Updates(&data)
+	// })
 
 	// 蠱毒に書き込み
 	r.POST("/kodoku/write", func(c *gin.Context) {
@@ -117,7 +117,7 @@ func setRouter(db *gorm.DB) *gin.Engine {
 		}
 	})
 	// 蠱毒全部読み込む
-	r.GET("/kodoku/read", func(c *gin.Context) {
+	r.GET("/kodoku/readall", func(c *gin.Context) {
 		contents := []Kodoku{}
 		db.Find(&contents)
 		c.JSON(http.StatusOK, contents)
@@ -149,18 +149,25 @@ func setRouter(db *gorm.DB) *gin.Engine {
 		// fmt.Println(result)
 		fmt.Println("-----------------")
 
-		jsonreturn := Tweetresult{}
-		jsonreturn.Text = result.Text
-		jsonreturn.User.Name = result.User.Name
-		jsonreturn.User.Screen_name = result.User.Screen_name
-		jsonreturn.Created_at = result.Created_at
+		data := Kodoku{}
+		data.UserID = result.User.Screen_name
+		data.UserName = result.User.Name
+		data.Text = result.Text
+		data.Created_at = result.Created_at
+		data.Tweetid = num
+		data.Blockwrited = false
 
 		// jsonreturn := Tweetresult{}
-		// jsonreturn.Text = "俺はジャイアン"
-		// jsonreturn.User.Name = "ガキ大将"
-		// jsonreturn.User.Screen_name = "sa"
-		// jsonreturn.Created_at = "昨日"
-		c.JSON(http.StatusOK, jsonreturn)
+		// jsonreturn.Text = result.Text
+		// jsonreturn.User.Name = result.User.Name
+		// jsonreturn.User.Screen_name = result.User.Screen_name
+		// jsonreturn.Created_at = result.Created_at
+
+		db.NewRecord(data)
+		db.Create(&data)
+		if db.NewRecord(data) == false {
+			c.JSON(http.StatusOK, data)
+		}
 
 	})
 
@@ -209,7 +216,7 @@ func main() {
 
 	// 初回マイグレーションで使った
 	db.CreateTable(&Kodoku{})
-	db.CreateTable(&Enmatyou{})
+	// db.CreateTable(&Enmatyou{})
 
 	port := os.Args[1]
 	r := setRouter(db)

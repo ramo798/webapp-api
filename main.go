@@ -132,6 +132,7 @@ func setRouter(db *gorm.DB) *gin.Engine {
 
 	// twitterid渡すところ
 	r.GET("/twitterid/:num", func(c *gin.Context) {
+		// POSTで受けるようにしたほうがいいかもしれない
 		// data := Twitteridpost{}
 
 		// if err := c.BindJSON(&data); err != nil {
@@ -140,14 +141,7 @@ func setRouter(db *gorm.DB) *gin.Engine {
 
 		num := c.Param("num")
 
-		fmt.Println("-----------------")
-		// fmt.Println(num)
-		// fmt.Println(data.Tweetid)
-		// fmt.Println(reflect.TypeOf(data.Tweetid))
 		result := gettweet(num)
-		// time.Sleep(2 * time.Second)
-		// fmt.Println(result)
-		fmt.Println("-----------------")
 
 		data := Kodoku{}
 		data.UserID = result.User.Screen_name
@@ -156,12 +150,6 @@ func setRouter(db *gorm.DB) *gin.Engine {
 		data.Created_at = result.Created_at
 		data.Tweetid = num
 		data.Blockwrited = false
-
-		// jsonreturn := Tweetresult{}
-		// jsonreturn.Text = result.Text
-		// jsonreturn.User.Name = result.User.Name
-		// jsonreturn.User.Screen_name = result.User.Screen_name
-		// jsonreturn.Created_at = result.Created_at
 
 		db.NewRecord(data)
 		db.Create(&data)
@@ -206,10 +194,6 @@ func gettweet(id string) Tweetresult {
 }
 
 func main() {
-
-	// test := gettweet("1162705418025521152")
-	// // fmt.Println(test.Text)
-	// fmt.Println(test.User.Name)
 
 	db := gormConnect()
 	defer db.Close()
